@@ -1,0 +1,23 @@
+
+
+services:
+  order_service:
+    image: order_service:latest
+    container_name: order_service
+    ports:
+      - "8083:8083"
+    environment:
+      - PORT=8083
+      - MYSQL_URI=jdbc:mysql://order-service-db-huy535137-23c2.f.aivencloud.com:25294/defaultdb?useSSL=true&serverTimezone=UTC&ssl-mode=REQUIRED
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE=https://eureka-server-v1-1.onrender.com/eureka # Địa chỉ kết nối Eureka Server qua container name
+      - JWT_SIGNER_KEY=1TjXchw5FloESb63Kc+DFhTARvpWL4jUGCwfGWxuG5SIf/1y/LgJxHnMqaF6A/ij
+    depends_on:
+      - eureka-server  
+    restart: always
+
+networks:
+  my-network:
+    driver: bridge
+  
+environment:
+  - SPRING_PROFILES_ACTIVE=prod
