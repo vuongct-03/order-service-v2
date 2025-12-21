@@ -28,7 +28,7 @@ COPY --from=build /app/target/*.jar app.jar
 # Bước 9: Thiết lập môi trường để kết nối với MongoDB và Eureka
 # Các giá trị này có thể được cấu hình qua biến môi trường hoặc trong `application.properties/application.yml`
 
-ENV EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE=https://eureka-service-v2.onrender.com
+ENV EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE=https://eureka-service-v2.onrender.com/eureka
 
 ENV MYSQL_URI=jdbc:mysql://order-service-db-huy535137-23c2.f.aivencloud.com:25294/defaultdb?useSSL=true&serverTimezone=UTC&ssl-mode=REQUIRED
 ENV JWT_SIGNER_KEY=1TjXchw5FloESb63Kc+DFhTARvpWL4jUGCwfGWxuG5SIf/1y/LgJxHnMqaF6A/ij
