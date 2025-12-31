@@ -10,14 +10,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.security.core.Authentication;
 
-import com.kltn.order_service.client.dto.SellerProfileDTO;
 import com.kltn.order_service.client.dto.SpecificationDTO;
-import com.kltn.order_service.client.dto.UserBehaviorDTO;
 import com.kltn.order_service.client.dto.UserDTO;
 import com.kltn.order_service.client.service.ProductClientService;
 import com.kltn.order_service.client.service.SpecificationClientService;
@@ -52,15 +48,12 @@ public class OrderServiceImpl implements OrderService {
     private final SpecificationClientService specificationService;
     private final UserClientService userService;
     private final OrderRepository orderRepository;
-    private final DistanceService distanceService;
     private final OrderItemRepository orderItemRepository;
     private final CloudinaryService cloudinaryService;
-    private final ProductClientService productService;
     private final ShippingOrderService shippingOrderService;
     private final PaymentSuccessProducer paymentSuccessProducer;
     private final CartItemRepository cartItemRepository;
     private final CartItemService cartItemService;
-    private final UserClientService userClientService;
 
     private final OrderKafkaProducer  orderKafkaProducer;
 
@@ -81,16 +74,13 @@ public class OrderServiceImpl implements OrderService {
         this.specificationService = specificationService;
         this.userService = userService;
         this.orderRepository = orderRepository;
-        this.distanceService = distanceService;
         this.orderItemRepository = orderItemRepository;
         this.cloudinaryService = cloudinaryService;
-        this.productService = productService;
         this.shippingOrderService = shippingOrderService;
         this.orderKafkaProducer = orderKafkaProducer;
         this.paymentSuccessProducer = paymentSuccessProducer;
         this.cartItemRepository = cartItemRepository;
         this.cartItemService = cartItemService;
-        this. userClientService = userClientService;
         
     }
 
@@ -116,15 +106,6 @@ public class OrderServiceImpl implements OrderService {
 
             int stock = spec.getQuantity();
             int requested = item.getQuantity();
-
-            //User behavier
-            UserBehaviorDTO userBehaviorDTO = UserBehaviorDTO.builder()
-                .userId(order.getUserId())
-                .specId(spec.getId())
-                .action("buy")
-            .build();
-
-            userClientService.saveUserBehavior(userBehaviorDTO);
 
             if (stock == 0) {
                 // Nếu sản phẩm hết hàng → xóa khỏi giỏ
@@ -153,7 +134,7 @@ public class OrderServiceImpl implements OrderService {
         // B2: Tạo OrderItem khi tất cả hợp lệ
         for (OrderItemRequestDTO item : items) {
             SpecificationDTO spec = specCache.get(item.getSpecId());
-            double totalPrice = item.getQuantity() * spec.getPrice();
+            double totalPrice = item.getQuantity() * spec.getPrice() * ((100 - item.getDiscountPercent())/100);
 
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
@@ -489,7 +470,7 @@ public class OrderServiceImpl implements OrderService {
 
 
     @Override
-    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('OWNER', 'STAFF', 'ADMIN')")
     public List<OrderResponse> getOrdersByUser(Long userId) {
         try {
 

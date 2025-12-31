@@ -8,4 +8,5 @@ import lombok.Getter;
 public class OrderItemRequestDTO {
     private String specId;
     private int quantity;
+    private double discountPercent;
 }

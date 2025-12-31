@@ -8,15 +8,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kltn.order_service.client.dto.ProductDTO;
 import com.kltn.order_service.client.dto.SpecificationDTO;
-import com.kltn.order_service.client.dto.UserBehaviorDTO;
 import com.kltn.order_service.client.dto.UserDTO;
-import com.kltn.order_service.client.service.ProductClientService;
 import com.kltn.order_service.client.service.SpecificationClientService;
 import com.kltn.order_service.client.service.UserClientService;
 import com.kltn.order_service.dto.request.CartItemRequestDTO;
 import com.kltn.order_service.dto.response.CartItemResponse;
+import com.kltn.order_service.kafka.dto.ProductResponseKafka;
 import com.kltn.order_service.kafka.dto.SpecificationResponseKafka;
 import com.kltn.order_service.model.CartItem;
 import com.kltn.order_service.repository.CartItemRepository;
@@ -30,9 +28,6 @@ public class CartItemServiceImpl implements CartItemService {
 
     @Autowired
     private UserClientService userClientService;
-
-    @Autowired
-    private ProductClientService productClientService;
 
     @Autowired
     private SpecificationClientService specificationClientService;
@@ -88,14 +83,6 @@ public class CartItemServiceImpl implements CartItemService {
 
             cartItem = cartItemRepository.save(cateItem);
         }
-
-            UserBehaviorDTO userBehaviorDTO = UserBehaviorDTO.builder()
-                .userId(user.getId())
-                .specId(spec.getId())
-                .action("add_to_cart")
-            .build();
-
-            userClientService.saveUserBehavior(userBehaviorDTO);
     
         return cartItem.getId();
 
@@ -192,6 +179,20 @@ public class CartItemServiceImpl implements CartItemService {
             cartItem.setName(spec.getName());
             cartItem.setPrice(spec.getPrice());
             cartItem.setProductAvatar(spec.getImageURLs().get(0));
+
+            cartItemRepository.save(cartItem);
+            
+        }catch(Exception e) {
+            throw new RuntimeException("lỗi", e);
+        }
+    }
+
+        @Override
+    public void updateProductForCartItemKafka(ProductResponseKafka product) {
+        try{
+            CartItem cartItem = cartItemRepository.findByProductId(product.getId());
+            cartItem.setName(product.getName());
+            cartItem.setDiscountPercent(product.getDiscountPercent());
 
             cartItemRepository.save(cartItem);
             

@@ -1,7 +1,7 @@
 package com.kltn.order_service.kafka.dto;
 
+
 import java.io.Serializable;
-import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -15,17 +15,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true) 
-public class SpecificationResponseKafka implements Serializable {
+public class ProductResponseKafka implements Serializable {
     private String id;
     private String name;
-    private double price;
-    private String size;
-    private String length;
-    private String height;
-    private String width;
-    private String color;
-    private int quantity;
-    private String productId;
-    private List<String> imageURLs;
+    private double discountPercent;
 }
 

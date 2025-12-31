@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.kltn.order_service.dto.request.CartItemRequestDTO;
 import com.kltn.order_service.dto.response.CartItemResponse;
+import com.kltn.order_service.kafka.dto.ProductResponseKafka;
 import com.kltn.order_service.kafka.dto.SpecificationResponseKafka;
 
 public interface CartItemService {
@@ -16,6 +17,8 @@ public interface CartItemService {
     void decreaseQuantity(Long id);
 
     void updateCartItemKafka(SpecificationResponseKafka spec);
+
+    void updateProductForCartItemKafka(ProductResponseKafka product);
 
     void deleteItem(Long id);
 
