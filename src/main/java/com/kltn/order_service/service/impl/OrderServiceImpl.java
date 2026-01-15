@@ -25,6 +25,7 @@ import com.kltn.order_service.dto.response.OrderItemResponse;
 import com.kltn.order_service.dto.response.OrderResponse;
 import com.kltn.order_service.kafka.OrderKafkaProducer;
 import com.kltn.order_service.kafka.PaymentSuccessProducer;
+import com.kltn.order_service.kafka.ReStockKafkaProducer;
 import com.kltn.order_service.dto.response.OrderRes;
 import com.kltn.order_service.model.CartItem;
 import com.kltn.order_service.model.Order;
@@ -54,6 +55,7 @@ public class OrderServiceImpl implements OrderService {
     private final PaymentSuccessProducer paymentSuccessProducer;
     private final CartItemRepository cartItemRepository;
     private final CartItemService cartItemService;
+    private final ReStockKafkaProducer reStockKafkaProducer;
 
     private final OrderKafkaProducer  orderKafkaProducer;
 
@@ -69,7 +71,8 @@ public class OrderServiceImpl implements OrderService {
             PaymentSuccessProducer paymentSuccessProducer,
             CartItemRepository cartItemRepository,
             CartItemService cartItemService,
-            UserClientService userClientService) {
+            UserClientService userClientService,
+            ReStockKafkaProducer reStockKafkaProducer) {
 
         this.specificationService = specificationService;
         this.userService = userService;
@@ -81,6 +84,7 @@ public class OrderServiceImpl implements OrderService {
         this.paymentSuccessProducer = paymentSuccessProducer;
         this.cartItemRepository = cartItemRepository;
         this.cartItemService = cartItemService;
+        this.reStockKafkaProducer = reStockKafkaProducer;
         
     }
 
@@ -613,6 +617,15 @@ public class OrderServiceImpl implements OrderService {
         try{
             Order order = getOrderById(id);
 
+            OrderResponse response = OrderResponse.builder()
+                .totalPrice(order.getTotalPrice())
+                .shippingFee(order.getShippingFee())
+                .orderDate(order.getCreateAt())
+                .status(order.getStatus().toString())
+                .isPayment(order.isPayment())
+                .referralCode(order.getReferralCode())
+                .items(buildItemsByOrder(order.getId()))
+            .build();
 
             if ("delivering".equals(order.getStatus())){
                 return "Đơn hàng đang quá trình giao. Bạn không thể hủy đơn!";
@@ -630,6 +643,7 @@ public class OrderServiceImpl implements OrderService {
                 order.setStatus("cancel");
                 orderRepository.save(order);
 
+                reStockKafkaProducer.sendReStockKafkaProducer(response);
                 return "Hủy đơn hàng thành công!";
             }
 
